@@ -133,11 +133,17 @@ def main():
     server_socket.listen(2)
     print("Сервер запущен, ждём игроков...")
 
-    while True:
-        conn, addr = server_socket.accept()
-        thread = threading.Thread(target=handle_client, args=(conn, addr))
-        thread.start()
-        print("Подключенные игроки:", [c.getpeername()[0] for c in clients])
+    try:
+        while True:
+            conn, addr = server_socket.accept()
+            thread = threading.Thread(target=handle_client, args=(conn, addr))
+            thread.start()
+            print("Подключенные игроки:", [c.getpeername()[0] for c in clients])
+    except KeyboardInterrupt:
+        print("\nОтключение сервера...")
+    finally:
+        server_socket.close()
+        print("Сервер остановлен.")
 
 if __name__ == "__main__":
     main()
