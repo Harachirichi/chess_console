@@ -51,17 +51,37 @@ def is_valid_move(player_color, sr, sc, er, ec):
         return False
     if board[er][ec] != " ":
         return False
-    if abs(ec - sc) != 1:
-        return False
-    if player_color == "w":
-        if er != sr - 1:
-            return False
-    elif player_color == "b":
-        if er != sr + 1:
-            return False
-    return True
+    
+    dr = er - sr
+    dc = ec - sc
+
+    if abs(dr) == 1 and abs(dc) == 1:
+        if player_color == "w" and dr == -1:
+            return True
+        if player_color == "b" and dr == 1:
+            return True
+        
+    if abs(dr) == 2 and abs(dc) == 2:
+        mid_r = sr + dr // 2
+        mid_c = sc + dc // 2
+        mid_piece = board[mid_r][mid_c].lower()
+        if mid_piece != " " and mid_piece != player_color:
+            if player_color == "w" and dr == -2:
+                return True
+            if player_color == "b" and dr == 2:
+                return True
+            
+    return False
 
 def make_move(sr, sc, er, ec):
+    dr = er - sr
+    dc = ec - sc
+
+    if abs(dr) == 2 and abs(dc) == 2:
+        mid_r = sr + dr // 2
+        mid_c = sc + dc // 2
+        board[mid_r][mid_c] = " "
+    
     board[er][ec] = board[sr][sc]
     board[sr][sc] = " "
 
