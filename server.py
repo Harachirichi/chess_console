@@ -60,16 +60,18 @@ def is_valid_move(player_color, sr, sc, er, ec):
             return True
         if player_color == "b" and dr == 1:
             return True
+        return False
         
     if abs(dr) == 2 and abs(dc) == 2:
         mid_r = sr + dr // 2
         mid_c = sc + dc // 2
         mid_piece = board[mid_r][mid_c].lower()
         if mid_piece != " " and mid_piece != player_color:
-            if player_color == "w" and dr == -2:
-                return True
-            if player_color == "b" and dr == 2:
-                return True
+            return True
+            # if player_color == "w" and dr == -2:
+            #     return True
+            # if player_color == "b" and dr == 2:
+            #     return True
             
     return False
 
@@ -84,6 +86,19 @@ def make_move(sr, sc, er, ec):
     
     board[er][ec] = board[sr][sc]
     board[sr][sc] = " "
+    return (abs(dr) == 2)
+
+def has_more_captures(player_color, r, c):
+    directions = [(-2, -2), (-2, 2), (2, -2), (2, 2)]
+    for dr, dc in directions:
+        er, ec = r + dr, c + dc
+        mid_r, mid_c = r + dr // 2, c + dc // 2
+        if 0 <= er < 8 and 0 <= ec < 8 and 0 <= mid_r < 8 and 0 <= mid_c < 8:
+            if board[er][ec] == " ":
+                mid_piece = board[mid_r][mid_c].lower()
+                if mid_piece != " " and mid_piece != player_color:
+                    return True
+    return False
 
 def broadcast(msg):
     for c in clients:
@@ -130,9 +145,14 @@ def handle_client(conn, addr):
 
             sr, sc, er, ec = move
             if is_valid_move(players[conn], sr, sc, er, ec):
-                make_move(sr, sc, er, ec)
-                current_turn = "b" if current_turn == "w" else "w"
+                was_capture = make_move(sr, sc, er, ec)
                 broadcast(print_board())
+
+                if was_capture and has_more_captures(players[conn], er, ec):
+                    conn.send("Вы можете сделать ещё один ход\n".encode())
+                    continue
+                
+                current_turn = "b" if current_turn == "w" else "w"
                 broadcast(f"Сейчас ход: {current_turn}\n")
             else:
                 conn.send("Недопустимый ход\n".encode())
